@@ -16,7 +16,12 @@ public class ClaseController {
 
     @GetMapping
     public List<Clase> obtenerClases(){
-        return null;
+        return claseService.obtenerClases();
+    }
+
+    @PostMapping
+    public Clase crearClase(@RequestBody Clase clase){
+        return claseService.crearClase(clase);
     }
 
 }

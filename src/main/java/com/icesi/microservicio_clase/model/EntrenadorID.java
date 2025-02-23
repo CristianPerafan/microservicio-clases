@@ -13,5 +13,5 @@ import java.io.Serializable;
 @NoArgsConstructor
 @AllArgsConstructor
 public class EntrenadorID implements Serializable {
-    private Long id;
+    private Long entrenadorId;
 }
