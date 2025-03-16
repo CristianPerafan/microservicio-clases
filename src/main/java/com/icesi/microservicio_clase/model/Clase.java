@@ -7,6 +7,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Set;
 
 @Data
 @Entity
@@ -21,7 +23,8 @@ public class Clase {
     private LocalDateTime horario;
     private  int capacidadMaxima;
 
+    @ElementCollection
+    private Set<Long> miembros;
 
-     private EntrenadorID entrenadorID;
-
+    private EntrenadorID entrenadorID;
 }

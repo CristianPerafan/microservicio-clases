@@ -1,5 +1,7 @@
 package com.icesi.microservicio_clase.controller;
 
+import com.icesi.microservicio_clase.dto.CambioHorarioDTO;
+import com.icesi.microservicio_clase.dto.InscripcionDTO;
 import com.icesi.microservicio_clase.model.Clase;
 import com.icesi.microservicio_clase.service.ClaseService;
 import io.swagger.v3.oas.annotations.*;
@@ -39,5 +41,15 @@ public class ClaseController {
     @Operation(summary = "Acceder a recurso público")
     public String publico() {
         return "Este es un recurso público";
+    }
+
+    @PostMapping("/{id}/inscribir")
+    public String inscribirMiembro(@PathVariable Long id, @RequestBody InscripcionDTO inscripcionDTO) {
+        return claseService.inscribirMiembro(id, inscripcionDTO);
+    }
+
+    @PostMapping("/{id}/cambiar-horario")
+    public Clase cambiarHorario(@PathVariable Long id, @RequestBody CambioHorarioDTO horario) {
+        return claseService.cambiarHorario(id, horario);
     }
 }

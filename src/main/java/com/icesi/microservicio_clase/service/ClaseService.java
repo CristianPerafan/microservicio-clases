@@ -1,15 +1,17 @@
 package com.icesi.microservicio_clase.service;
 
 
-import com.icesi.microservicio_clase.exception.EntrenadorNoEncontradoException;
+import com.icesi.microservicio_clase.dto.CambioHorarioDTO;
+import com.icesi.microservicio_clase.dto.InscripcionDTO;
+import com.icesi.microservicio_clase.dto.NotificacionDTO;
 import com.icesi.microservicio_clase.model.Clase;
 import com.icesi.microservicio_clase.repository.ClaseRepository;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
@@ -23,6 +25,9 @@ public class ClaseService {
 
     @Autowired
     private RestTemplate restTemplate;
+
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
 
     public List<Clase> obtenerClases(){
         return claseRepository.findAll();
@@ -47,5 +52,47 @@ public class ClaseService {
             System.out.println("Error: "+e.getMessage());
             throw new ResponseStatusException(HttpStatusCode.valueOf(500));
         }
+    }
+
+    public String inscribirMiembro(Long id, InscripcionDTO inscripcionDTO) {
+        try {
+            Clase clase = claseRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatusCode.valueOf(404), "Clase no encontrada"));
+            if(clase.getMiembros().contains(inscripcionDTO.getMiembroId())){
+                return "Miembro ya inscrito";
+            }
+            clase.getMiembros().add(inscripcionDTO.getMiembroId());
+            claseRepository.save(clase);
+
+            NotificacionDTO notificacionDTO = new NotificacionDTO();
+            notificacionDTO.setMemberId(inscripcionDTO.getMiembroId());
+            notificacionDTO.setEntrenadorId(clase.getEntrenadorID().getEntrenadorId());
+            notificacionDTO.setMensaje("Inscrito a la clase "+clase.getNombre());
+
+            System.out.println("Enviando notificación de inscripción: " + notificacionDTO.getMemberId());
+            rabbitTemplate.convertAndSend("inscripcion.exchange", "inscripcion.routingkey", notificacionDTO);
+
+            return "Miembro inscrito";
+
+        } catch (ResponseStatusException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ResponseStatusException(HttpStatusCode.valueOf(500));
+        }
+
+    }
+
+    public Clase cambiarHorario(Long id, CambioHorarioDTO horario) {
+
+        Clase clase = claseRepository.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatusCode.valueOf(404), "Clase no encontrada"));
+        clase.setHorario(horario.getNuevoHorario());
+
+        horario.setClaseId(id);
+        claseRepository.save(clase);
+
+        rabbitTemplate.convertAndSend("horario.exchange","", horario);
+
+        System.out.println("Enviando notificación de cambio de horario: " + horario.getClaseId());
+
+        return clase;
     }
 }
