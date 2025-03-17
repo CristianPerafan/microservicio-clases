@@ -52,4 +52,6 @@ public class ClaseController {
     public Clase cambiarHorario(@PathVariable Long id, @RequestBody CambioHorarioDTO horario) {
         return claseService.cambiarHorario(id, horario);
     }
+
+
 }

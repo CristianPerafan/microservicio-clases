@@ -4,7 +4,9 @@ package com.icesi.microservicio_clase.service;
 import com.icesi.microservicio_clase.dto.CambioHorarioDTO;
 import com.icesi.microservicio_clase.dto.InscripcionDTO;
 import com.icesi.microservicio_clase.dto.NotificacionDTO;
+import com.icesi.microservicio_clase.dto.OcupacionClase;
 import com.icesi.microservicio_clase.model.Clase;
+import com.icesi.microservicio_clase.producer.OcupacionClasesProducer;
 import com.icesi.microservicio_clase.repository.ClaseRepository;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +30,9 @@ public class ClaseService {
 
     @Autowired
     private RabbitTemplate rabbitTemplate;
+
+    @Autowired
+    private OcupacionClasesProducer ocupacionClasesProducer;
 
     public List<Clase> obtenerClases(){
         return claseRepository.findAll();
@@ -63,6 +68,11 @@ public class ClaseService {
             clase.getMiembros().add(inscripcionDTO.getMiembroId());
             claseRepository.save(clase);
 
+            int ocupacion = clase.getMiembros().size();
+            ocupacionClasesProducer.enviarOcupacionClase(id, ocupacion);
+            System.out.println("Enviando mensaje de ocupación de clase: " + "Clase: "+clase.getNombre()+" - Ocupación: "+ocupacion);
+
+
             NotificacionDTO notificacionDTO = new NotificacionDTO();
             notificacionDTO.setMemberId(inscripcionDTO.getMiembroId());
             notificacionDTO.setEntrenadorId(clase.getEntrenadorID().getEntrenadorId());
@@ -74,6 +84,7 @@ public class ClaseService {
             return "Miembro inscrito";
 
         } catch (ResponseStatusException e) {
+            System.out.println("Error: "+e.getMessage());
             throw e;
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatusCode.valueOf(500));
