@@ -72,7 +72,7 @@ public class ClaseService {
             }
             clase.getMiembros().add(inscripcionDTO.getMiembroId());
             claseRepository.save(clase);
-
+            System.out.println("Miembro inscrito a clase: "+clase.getNombre());
             int ocupacion = clase.getMiembros().size();
             ocupacionClasesProducer.enviarOcupacionClase(id, ocupacion);
             System.out.println("Enviando mensaje de ocupación de clase: " + "Clase: "+clase.getNombre()+" - Ocupación: "+ocupacion);

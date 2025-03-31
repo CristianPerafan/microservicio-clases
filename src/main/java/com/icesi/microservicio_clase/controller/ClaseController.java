@@ -15,6 +15,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/clase")
@@ -35,8 +36,8 @@ public class ClaseController {
         return claseService.obtenerClases();
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @PostMapping
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @Operation(summary = "Crear una nueva clase")
     @ApiResponse(responseCode = "201", description = "Clase creada con éxito")
     public Clase crearClase(@RequestBody Clase clase) {
@@ -45,32 +46,47 @@ public class ClaseController {
 
     @GetMapping("/public")
     @Operation(summary = "Acceder a recurso público")
+    @ApiResponse(responseCode = "200", description = "Recurso público accedido con éxito")
     public String publico() {
         return "Este es un recurso público";
     }
 
     @PostMapping("/{id}/inscribir")
+    @Operation(summary = "Inscribir un miembro a una clase")
+    @ApiResponse(responseCode = "200", description = "Miembro inscrito a la clase")
+    @ApiResponse(responseCode = "404", description = "Clase no encontrada")
     public String inscribirMiembro(@PathVariable Long id, @RequestBody InscripcionDTO inscripcionDTO) {
+        System.out.println("Inscribiendo miembro a clase con id: " + id);
         return claseService.inscribirMiembro(id, inscripcionDTO);
     }
 
     @PostMapping("/{id}/cambiar-horario")
+    @Operation(summary = "Cambiar horario de una clase")
+    @ApiResponse(responseCode = "200", description = "Horario cambiado con éxito")
+    @ApiResponse(responseCode = "404", description = "Clase no encontrada")
     public Clase cambiarHorario(@PathVariable Long id, @RequestBody CambioHorarioDTO horario) {
         return claseService.cambiarHorario(id, horario);
     }
 
     @GetMapping("/resumen-entrenamiento/{miembroId}")
-    //@PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_TRAINER')")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_TRAINER')")
     @Operation(summary = "Obtener el resumen de entrenamiento de un miembro")
     @ApiResponse(responseCode = "200", description = "Resumen obtenido con éxito")
     @ApiResponse(responseCode = "404", description = "Resumen no encontrado para el miembro")
     public ResponseEntity<ResumenEntrenamiento> obtenerResumenEntrenamiento(@PathVariable String miembroId) {
         ResumenEntrenamiento resumen = resumenEntrenamientoConsumer.obtenerResumen(miembroId);
+        System.out.println("Resumen obtenido: " + resumen);
         if (resumen == null) {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(resumen);
     }
 
-
+    @GetMapping("/resumen-entrenamiento")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_TRAINER')")
+    @Operation(summary = "Obtener todos los resúmenes de entrenamiento")
+    @ApiResponse(responseCode = "200", description = "Lista de resúmenes obtenida con éxito")
+    public ResponseEntity<Map<String, ResumenEntrenamiento>> obtenerTodosResumenesEntrenamiento() {
+        return ResponseEntity.ok(resumenEntrenamientoConsumer.obtenerTodosResumenes());
+    }
 }

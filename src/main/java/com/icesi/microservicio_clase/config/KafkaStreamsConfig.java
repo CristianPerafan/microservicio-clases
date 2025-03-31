@@ -21,27 +21,35 @@ public class KafkaStreamsConfig {
 
     @Bean
     public KStream<String, DatosEntrenamiento> kStream(StreamsBuilder streamsBuilder) {
-        JsonSerde<DatosEntrenamiento> datosEntrenamientoSerde = new JsonSerde<>(DatosEntrenamiento.class);
-        JsonSerde<ResumenEntrenamiento> resumenEntrenamientoSerde = new JsonSerde<>(ResumenEntrenamiento.class);
 
-        KStream<String, DatosEntrenamiento> stream = streamsBuilder.stream(
-                "datos-entrenamiento",
-                Consumed.with(Serdes.String(), datosEntrenamientoSerde)
-        );
+        try {
 
-        stream.groupByKey()
-                .windowedBy(TimeWindows.of(Duration.ofDays(7)))
-                .aggregate(
-                        ResumenEntrenamiento::new,
-                        (key, value, aggregate) -> aggregate.actualizar(value),
-                        Materialized.<String, ResumenEntrenamiento, WindowStore<Bytes, byte[]>>as("resumen-entrenamiento-store")
-                                .withKeySerde(Serdes.String())
-                                .withValueSerde(resumenEntrenamientoSerde)
-                )
-                .toStream()
-                .map((windowedKey, value) -> new KeyValue<>(windowedKey.key(), value)) // Extraer solo el miembroId como clave
-                .to("resumen-entrenamiento", Produced.with(Serdes.String(), resumenEntrenamientoSerde));
 
-        return stream;
+            JsonSerde<DatosEntrenamiento> datosEntrenamientoSerde = new JsonSerde<>(DatosEntrenamiento.class);
+            JsonSerde<ResumenEntrenamiento> resumenEntrenamientoSerde = new JsonSerde<>(ResumenEntrenamiento.class);
+
+            KStream<String, DatosEntrenamiento> stream = streamsBuilder.stream(
+                    "datos-entrenamiento",
+                    Consumed.with(Serdes.String(), datosEntrenamientoSerde)
+            );
+
+            stream.groupByKey()
+                    .windowedBy(TimeWindows.of(Duration.ofDays(7)))
+                    .aggregate(
+                            ResumenEntrenamiento::new,
+                            (key, value, aggregate) -> aggregate.actualizar(value),
+                            Materialized.<String, ResumenEntrenamiento, WindowStore<Bytes, byte[]>>as("resumen-entrenamiento-store")
+                                    .withKeySerde(Serdes.String())
+                                    .withValueSerde(resumenEntrenamientoSerde)
+                    )
+                    .toStream()
+                    .map((windowedKey, value) -> new KeyValue<>(windowedKey.key(), value)) // Extraer solo el miembroId como clave
+                    .to("resumen-entrenamiento", Produced.with(Serdes.String(), resumenEntrenamientoSerde));
+
+            return stream;
+        } catch (Exception e) {
+            System.out.println("Error en KafkaStreamsConfig: " + e.getMessage());
+            return null;
+        }
     }
 }
