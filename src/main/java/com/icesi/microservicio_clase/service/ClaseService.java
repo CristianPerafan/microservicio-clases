@@ -6,6 +6,7 @@ import com.icesi.microservicio_clase.dto.InscripcionDTO;
 import com.icesi.microservicio_clase.dto.NotificacionDTO;
 import com.icesi.microservicio_clase.dto.OcupacionClase;
 import com.icesi.microservicio_clase.model.Clase;
+import com.icesi.microservicio_clase.producer.DatosEntrenamientoProducer;
 import com.icesi.microservicio_clase.producer.OcupacionClasesProducer;
 import com.icesi.microservicio_clase.repository.ClaseRepository;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -33,6 +34,10 @@ public class ClaseService {
 
     @Autowired
     private OcupacionClasesProducer ocupacionClasesProducer;
+
+    @Autowired
+    private DatosEntrenamientoProducer datosEntrenamientoProducer;
+
 
     public List<Clase> obtenerClases(){
         return claseRepository.findAll();
@@ -72,7 +77,7 @@ public class ClaseService {
             ocupacionClasesProducer.enviarOcupacionClase(id, ocupacion);
             System.out.println("Enviando mensaje de ocupación de clase: " + "Clase: "+clase.getNombre()+" - Ocupación: "+ocupacion);
 
-
+            datosEntrenamientoProducer.enviarDatosEntrenamiento(inscripcionDTO.getMiembroId(), "cardio", 60, 300);
             NotificacionDTO notificacionDTO = new NotificacionDTO();
             notificacionDTO.setMemberId(inscripcionDTO.getMiembroId());
             notificacionDTO.setEntrenadorId(clase.getEntrenadorID().getEntrenadorId());
@@ -87,6 +92,7 @@ public class ClaseService {
             System.out.println("Error: "+e.getMessage());
             throw e;
         } catch (Exception e) {
+            System.out.println("Error: "+e.getMessage());
             throw new ResponseStatusException(HttpStatusCode.valueOf(500));
         }
 

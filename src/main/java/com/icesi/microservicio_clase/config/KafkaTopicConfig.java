@@ -13,5 +13,13 @@ public class KafkaTopicConfig {
     public NewTopic ocupacionClaseTopic() {
         return TopicBuilder.name("ocupacion.clases").build();
     }
+    @Bean
+    public NewTopic datosEntrenamientoTopic() {
+        return new NewTopic("datos-entrenamiento", 1, (short) 1);
+    }
 
+    @Bean
+    public NewTopic resumenEntrenamientoTopic() {
+        return new NewTopic("resumen-entrenamiento", 1, (short) 1);
+    }
 }
