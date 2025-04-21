@@ -1,10 +1,7 @@
 package com.icesi.microservicio_clase.service;
 
 
-import com.icesi.microservicio_clase.dto.CambioHorarioDTO;
-import com.icesi.microservicio_clase.dto.InscripcionDTO;
-import com.icesi.microservicio_clase.dto.NotificacionDTO;
-import com.icesi.microservicio_clase.dto.OcupacionClase;
+import com.icesi.microservicio_clase.dto.*;
 import com.icesi.microservicio_clase.model.Clase;
 import com.icesi.microservicio_clase.producer.DatosEntrenamientoProducer;
 import com.icesi.microservicio_clase.producer.OcupacionClasesProducer;
@@ -111,5 +108,19 @@ public class ClaseService {
         System.out.println("Enviando notificación de cambio de horario: " + horario.getClaseId());
 
         return clase;
+    }
+
+    public List<ClaseDTO> obtenerClasesPorMiembro(Long miembroId) {
+        List<Clase> clases = claseRepository.findByMiembrosContains(miembroId);
+        if (clases.isEmpty()) {
+            throw new ResponseStatusException(HttpStatusCode.valueOf(404), "No se encontraron clases para el miembro con ID: " + miembroId);
+        }
+        return  clases.stream()
+                .map(clase ->
+                        new ClaseDTO(
+                                clase.getId(), clase.getNombre(), clase.getHorario()
+                        ))
+                .toList();
+
     }
 }

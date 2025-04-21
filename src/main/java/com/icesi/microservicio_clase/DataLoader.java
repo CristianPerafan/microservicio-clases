@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Set;
 
 @Component
 public class DataLoader implements CommandLineRunner {
@@ -23,6 +24,8 @@ public class DataLoader implements CommandLineRunner {
         clase1.setHorario(LocalDate.of(2021, 5, 10).atStartOfDay());
         clase1.setCapacidadMaxima(20);
         clase1.setEntrenadorID(new EntrenadorID(1L));
+        //Agregando miembros a la clase
+        clase1.setMiembros(Set.of(1L, 2L, 3L));
         claseRepository.save(clase1);
 
         Clase clase2 = new Clase();
@@ -30,6 +33,8 @@ public class DataLoader implements CommandLineRunner {
         clase2.setHorario(LocalDate.of(2021, 5, 10).atStartOfDay());
         clase2.setCapacidadMaxima(20);
         clase2.setEntrenadorID(new EntrenadorID(2L));
+        //Agregando miembros a la clase
+        clase2.setMiembros(Set.of(1L, 2L, 3L));
         claseRepository.save(clase2);
 
 

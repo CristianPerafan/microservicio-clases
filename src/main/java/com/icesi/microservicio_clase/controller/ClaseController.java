@@ -2,6 +2,7 @@ package com.icesi.microservicio_clase.controller;
 
 import com.icesi.microservicio_clase.consumer.ResumenEntrenamientoConsumer;
 import com.icesi.microservicio_clase.dto.CambioHorarioDTO;
+import com.icesi.microservicio_clase.dto.ClaseDTO;
 import com.icesi.microservicio_clase.dto.InscripcionDTO;
 import com.icesi.microservicio_clase.dto.ResumenEntrenamiento;
 import com.icesi.microservicio_clase.model.Clase;
@@ -88,5 +89,18 @@ public class ClaseController {
     @ApiResponse(responseCode = "200", description = "Lista de resúmenes obtenida con éxito")
     public ResponseEntity<Map<String, ResumenEntrenamiento>> obtenerTodosResumenesEntrenamiento() {
         return ResponseEntity.ok(resumenEntrenamientoConsumer.obtenerTodosResumenes());
+    }
+
+    @GetMapping("/clases-miembro/{miembroId}")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_TRAINER')")
+    @Operation(summary = "Obtener clases de un miembro")
+    @ApiResponse(responseCode = "200", description = "Lista de clases obtenida con éxito")
+    @ApiResponse(responseCode = "404", description = "Miembro no encontrado")
+    public ResponseEntity<List<ClaseDTO>> obtenerClasesPorMiembro(@PathVariable Long miembroId) {
+        List<ClaseDTO> clases = claseService.obtenerClasesPorMiembro(miembroId);
+        if (clases == null || clases.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(clases);
     }
 }
